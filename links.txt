@@ -1,0 +1,5 @@
+Grupo: Nome Completo 1; Nome Completo 2
+App: https://nome-do-app.onrender.com
+GitHub: https://github.com/usuario/repositorio
+Commit entregue (hash): abc1234
+Chave reserva para a apresentação: sim/não

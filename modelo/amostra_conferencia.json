@@ -1,0 +1,47 @@
+[
+ {
+  "entrada": {
+   "area_m2": 56.0,
+   "quartos": 1,
+   "vagas": 2,
+   "bairro": "Passo dos Fortes"
+  },
+  "previsao_no_treino": 1809.959532771386
+ },
+ {
+  "entrada": {
+   "area_m2": 66.0,
+   "quartos": 4,
+   "vagas": 2,
+   "bairro": "Centro"
+  },
+  "previsao_no_treino": 3564.6527382257773
+ },
+ {
+  "entrada": {
+   "area_m2": 31.0,
+   "quartos": 3,
+   "vagas": 1,
+   "bairro": "Centro"
+  },
+  "previsao_no_treino": 1414.0
+ },
+ {
+  "entrada": {
+   "area_m2": 200.0,
+   "quartos": 1,
+   "vagas": 1,
+   "bairro": "Centro"
+  },
+  "previsao_no_treino": 5467.677301813407
+ },
+ {
+  "entrada": {
+   "area_m2": 198.0,
+   "quartos": 1,
+   "vagas": 0,
+   "bairro": "Jardim Itália"
+  },
+  "previsao_no_treino": 4535.45239184054
+ }
+]

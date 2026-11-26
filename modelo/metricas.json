@@ -1,0 +1,6 @@
+{
+  "modelo": "KNN (k=7, weights=distance)",
+  "r2_teste": 0.944,
+  "mae_teste": 247.5,
+  "sklearn_version": "1.9.1"
+}
