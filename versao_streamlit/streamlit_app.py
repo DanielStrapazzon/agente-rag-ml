@@ -52,9 +52,28 @@ def _excedeu(fila: deque, limite: tuple[int, int]) -> bool:
     return False
 
 
-st.set_page_config(page_title="Assistente de Aluguéis", page_icon="🏠")
-st.title("🏠 Assistente de Aluguéis")
-st.caption("Pergunte sobre os dados ou peça uma estimativa de aluguel.")
+NOMES_FONTES = {                                     # mesmos nomes amigáveis da interface Flask
+    "consultar_dados (dataset)": "Dataset Tech Layoffs (consulta)", "modelo MLP": "Modelo MLP",
+    "fatos_do_dataset (calculados do CSV)": "Fatos calculados do dataset",
+    "conhecimento/descricao_dataset.md": "Descrição do dataset",
+    "conhecimento/analise_exploratoria.md": "Análise exploratória",
+    "conhecimento/modelo_metricas.md": "Métricas do modelo", "conhecimento/limitacoes.md": "Limitações",
+}
+
+
+def _detalhes(etapas: list, fontes: list) -> None:
+    """Etapas REAIS e fontes devolvidas pelo agente (texto puro)."""
+    if fontes:
+        st.caption("Fontes: " + " · ".join(NOMES_FONTES.get(f, f) for f in fontes))
+    if etapas:
+        with st.expander(f"Etapas executadas ({len(etapas)})"):
+            for e in etapas:
+                st.text(e)
+
+
+st.set_page_config(page_title="Tech Layoffs — Inteligência e análise de dados", page_icon="📊")
+st.title("Tech Layoffs")
+st.caption("Inteligência e análise de dados · Projeto acadêmico — UNOESC · RAG + Machine Learning")
 
 if "historico" not in st.session_state:
     st.session_state.historico = []                  # [{"papel": "user"|"model", "texto": ..., "etapas": [...]}]
@@ -63,14 +82,16 @@ if st.button("🧹 Nova conversa"):
     st.session_state.historico = []
 
 with st.chat_message("assistant"):
-    st.write("Olá! Posso responder perguntas sobre o dataset de aluguéis ou estimar o aluguel de um imóvel.")
+    st.write("Olá! Posso responder perguntas sobre os eventos de demissão registrados no dataset Tech Layoffs "
+             "(totais, rankings, comparações entre anos, países e setores) e estimar, com o modelo MLP, quantas "
+             "pessoas seriam demitidas em um evento com determinadas características. "
+             "O modelo não prevê se uma empresa vai demitir.")
 for item in st.session_state.historico:
     with st.chat_message("user" if item["papel"] == "user" else "assistant"):
         st.text(item["texto"])                       # st.text: mostra como texto puro (sem Markdown/HTML)
-        if item.get("etapas"):
-            st.caption("🔧 " + " · ".join(item["etapas"]))
+        _detalhes(item.get("etapas") or [], item.get("fontes") or [])
 
-pergunta = st.chat_input("Ex.: Qual bairro tem o aluguel médio mais alto?", max_chars=MAX_CARACTERES)
+pergunta = st.chat_input("Ex.: Quantas demissões ocorreram no Brasil em 2023?", max_chars=MAX_CARACTERES)
 if pergunta:
     with st.chat_message("user"):
         st.text(pergunta)
@@ -91,7 +112,8 @@ if pergunta:
             st.error("Erro interno no agente. Veja o log do app.")
             st.stop()
         st.text(resultado["resposta"])
-        st.caption("🔧 " + " · ".join(resultado["etapas"]))
+        _detalhes(resultado["etapas"], resultado.get("fontes", []))
         print("pergunta=", repr(pergunta[:80]), "etapas=", resultado["etapas"])   # log, como no Flask
     st.session_state.historico += [{"papel": "user", "texto": pergunta},
-                                   {"papel": "model", "texto": resultado["resposta"], "etapas": resultado["etapas"]}]
+                                   {"papel": "model", "texto": resultado["resposta"], "etapas": resultado["etapas"],
+                                    "fontes": resultado.get("fontes", [])}]

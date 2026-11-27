@@ -385,13 +385,33 @@ def resposta_segura(contexto: dict) -> str | None:
         return "\n".join(linhas)
     p = contexto.get("previsao_do_modelo")
     if isinstance(p, dict):
-        texto = (f"Estimativa do modelo: {_valor(p['previsao'])} funcionários demitidos no evento. "
-                 f"Erro absoluto médio do modelo no teste (MAE): {_valor(p['erro_absoluto_medio_no_teste_MAE'])}. "
-                 "É uma estimativa estatística, não a probabilidade de a empresa demitir.")
+        linhas = [f"Estimativa do modelo: {_valor(p['previsao'])} funcionários demitidos no evento.",
+                  f"Erro absoluto médio do modelo no teste (MAE): {_valor(p['erro_absoluto_medio_no_teste_MAE'])}; "
+                  "o MAE não é um intervalo de confiança.",
+                  "É uma estimativa estatística, não a probabilidade de a empresa demitir."]
         if p.get("previsao_inconsistente"):
-            texto += " Atenção: " + p["aviso_inconsistencia"]
-        return texto
+            linhas.append("Atenção: " + p["aviso_inconsistencia"])
+        nomes = {"extrapolacao": "Extrapolação", "imputacao": "Imputação", "deducao": "Dedução",
+                 "categoria_fora_do_treino": "Categoria fora do treino", "conversao": "Conversão"}
+        for tipo, avisos in (contexto.get("alertas") or {}).items():
+            linhas += [f"{nomes.get(tipo, 'Alerta')}: {a}" for a in avisos]
+        c = contexto.get("casos_semelhantes")
+        if isinstance(c, dict) and c.get("quantidade_casos"):
+            linhas.append(f"Casos reais semelhantes ({c['quantidade_casos']}): média {_valor(c['media_real_dos_casos'])}, "
+                          f"mediana {_valor(c['mediana_real_dos_casos'])}, de {_valor(c['faixa_real_dos_casos'][0])} "
+                          f"a {_valor(c['faixa_real_dos_casos'][1])} demitidos.")
+            if c.get("fallback"):
+                linhas.append("Aviso: " + c["aviso_fallback"])
+            linhas.append("Observação: " + c["observacao"])
+        return "\n".join(linhas)
     return None
+
+
+def _evidencias(contexto: dict) -> dict:
+    """Parte do CONTEXTO aceita como evidência na verificação: sem 'pergunta_interpretada' e sem
+    'consulta_executada', que são texto/valores derivados da MENSAGEM do usuário (os filtros validados
+    continuam disponíveis em resultado_estatistico.filtros_aplicados)."""
+    return {k: v for k, v in contexto.items() if k not in ("pergunta_interpretada", "consulta_executada")}
 
 
 # ---------------------------------------------------------------- pipeline completo
@@ -470,13 +490,14 @@ def responder(mensagem: str, historico: list[dict]) -> dict:
     resposta = _gemini(INSTRUCOES, _conversa(historico, pedido))              # 4
     etapas.append("geração")
 
-    suspeitos = verificar(resposta, contexto) if resposta.strip() else ["resposta vazia"]    # 5
+    evidencias = _evidencias(contexto)
+    suspeitos = verificar(resposta, evidencias) if resposta.strip() else ["resposta vazia"]    # 5
     if suspeitos and time.monotonic() - inicio < 25:          # só refaz se ainda houver tempo
         aviso = ("\n\nATENÇÃO: sua resposta anterior estava vazia." if suspeitos == ["resposta vazia"] else
                  f"\n\nATENÇÃO: sua resposta anterior trazia números ou datas que não estão no CONTEXTO "
                  f"({', '.join(str(n) for n in suspeitos[:10])}). Reescreva usando somente números do CONTEXTO.")
         resposta = _gemini(INSTRUCOES, _conversa(historico, pedido + aviso))
-        suspeitos = verificar(resposta, contexto) if resposta.strip() else ["resposta vazia"]
+        suspeitos = verificar(resposta, evidencias) if resposta.strip() else ["resposta vazia"]
         etapas.append("verificação: refeita")
     if suspeitos:
         segura = resposta_segura(contexto)
@@ -494,4 +515,8 @@ def responder(mensagem: str, historico: list[dict]) -> dict:
     log.info("etapas=%s", etapas)
     fontes = sorted({t["fonte"] for t in trechos} | ({"consultar_dados (dataset)"} if "resultado_estatistico" in contexto else set())
                     | ({"modelo MLP"} if "previsao_do_modelo" in contexto else set()))
-    return {"resposta": resposta, "etapas": etapas, "fontes": fontes}
+    resultado = contexto.get("resultado_estatistico")
+    saida = {"resposta": resposta, "etapas": etapas, "fontes": fontes}
+    if isinstance(resultado, dict) and "erro" not in resultado:
+        saida["dados"] = resultado                  # opcional: resultado estruturado (gráficos no frontend)
+    return saida

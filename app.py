@@ -55,6 +55,37 @@ def saude():
     return jsonify(ok=True, modelo=agente.MODELO_GEMINI)
 
 
+def _resumo_do_dataset() -> dict:
+    """Indicadores agregados do dataset real, calculados UMA vez por consultar_dados() (pandas).
+    Somente leitura; não expõe linhas do dataset."""
+    F = agente.F
+    valor = lambda q: F.consultar_dados(q)["resultado"]                     # noqa: E731
+    por_ano = F.consultar_dados({"operacao": "soma", "coluna": "Laid_Off", "agrupar_por": ["year"],
+                                 "ordem": "asc", "limite": F.LIMITE_MAXIMO})
+    datas = F.DF["Date_layoffs"].dropna()
+    return {
+        "eventos": valor({"operacao": "contagem"}),
+        "demitidos": valor({"operacao": "soma", "coluna": "Laid_Off"}),
+        "empresas": valor({"operacao": "contagem_distinta", "coluna": "Company"}),
+        "paises": valor({"operacao": "contagem_distinta", "coluna": "Country"}),
+        "periodo": {"inicio": str(datas.min()), "fim": str(datas.max())},
+        "por_ano": sorted(({"ano": g["year"], "demitidos": g["resultado"], "eventos": g["registros"]}
+                           for g in por_ano["resultado"]), key=lambda g: g["ano"]),
+        "modelo": {"nome": F.METRICAS["modelo"], "mae_teste": F.METRICAS["mae_teste"],
+                   "r2_teste": F.METRICAS["r2_teste"]},
+        "observacao": "valores do dataset registrado (1 linha = 1 evento de demissão); "
+                      "UK e United Kingdom aparecem como grafias separadas na contagem de países",
+    }
+
+
+RESUMO = _resumo_do_dataset()
+
+
+@app.get("/api/dataset/resumo")
+def resumo_dataset():
+    return jsonify(RESUMO)
+
+
 @app.post("/api/chat")
 def chat():
     xff = request.headers.get("X-Forwarded-For", "")
@@ -87,7 +118,10 @@ def chat():
         return jsonify(erro="Erro interno no agente. Veja o log do servidor."), 500
 
     app.logger.info("pergunta=%r etapas=%s", mensagem[:60], resultado["etapas"])   # pergunta truncada; nunca a chave
-    return jsonify(resposta=resultado["resposta"], etapas=resultado["etapas"], fontes=resultado.get("fontes", []))
+    corpo = {"resposta": resultado["resposta"], "etapas": resultado["etapas"], "fontes": resultado.get("fontes", [])}
+    if resultado.get("dados"):                     # opcional e retrocompatível: resultado estruturado (gráficos)
+        corpo["dados"] = resultado["dados"]
+    return jsonify(corpo)
 
 
 if __name__ == "__main__":
