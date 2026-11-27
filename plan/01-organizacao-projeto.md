@@ -293,13 +293,16 @@ Decisão: `requirements.txt` do kit **mantido**; dependências de notebook não 
 - [x] Acrescentar seção Tech Layoffs + "O que mudamos em relação ao kit" no README
 - [x] Validar cópias por SHA-256
 - [x] Verificar duplicatas fora de `dist/` e que nenhum arquivo funcional do kit mudou
-- [ ] Executar `testar_sem_api.py` — **não executado**: não há Python 3.12/3.13 nem dependências instaladas (só Python 3.14 do sistema)
+- [x] Executar `testar_sem_api.py` — **não executado**: não há Python 3.12/3.13 nem dependências instaladas (só Python 3.14 do sistema)
+  - **Atualização 2026-11-26 (etapa 02):** o usuário criou `.venv/` com **Python 3.14.10** e instalou o `requirements.txt` sem alterações; `testar_sem_api.py` e `conferir.py` rodaram com ponte `{'ok': True, 'detalhes': []}`. Reexecutado e confirmado na etapa 02 (ver `plan/02-preparacao-dataset.md`).
 - [x] Registrar `git status` final
 
 ## 13. Pendências para as próximas etapas
 
 1. Criar venv Python 3.13 e instalar `requirements.txt`; rodar `testar_sem_api.py` e `conferir.py`
    (linha de base do kit).
+   → **Concluída em 2026-11-26** com Python 3.14.10 (não 3.13). Nova pendência: confirmar se a
+   hospedagem aceita 3.14.10 ou retreinar em 3.13; `.python-version` ainda diz 3.13.
 2. Decidir sobre a alteração de comentário em `requirements.txt` (manter ou reverter).
 3. Ajustar caminho `data/` → `dados/` no notebook (ou script de treino) e redirecionar saídas.
 4. Criar `treinar.py` a partir do notebook (mesmo pipeline/hiperparâmetros, modelo escolhido

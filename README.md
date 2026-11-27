@@ -269,9 +269,24 @@ O agente será adaptado para o domínio **Tech Layoffs** (demissões no setor de
 | `reports/README_TRABALHO_ANTERIOR.md` | README do trabalho anterior |
 | `reports/requirements_trabalho_anterior.txt` | dependências do notebook (pandas, numpy, scikit-learn, matplotlib, seaborn, notebook) |
 | `referencias/notebook_EDA_kaggle.ipynb` | notebook EDA de referência do Kaggle |
-| `plan/` | planos de cada etapa (`01-organizacao-projeto.md`: análise completa, mapeamentos e pendências) |
+| `dados/dataset_legivel_tech_layoffs.csv` | dataset **preparado** (legível), gerado por `preparar_dados.py` |
+| `preparar_dados.py` | preparação reproduzível dos dados (limpeza do notebook, sem transformações de modelo) |
+| `tests/` | testes automatizados (`unittest`) da preparação |
+| `reports/PERFIL_DATASET.md` | perfil do dataset: dicionário, estatísticas reais, inconsistências e limitações |
+| `plan/` | planos de cada etapa (`01-organizacao-projeto.md`, `02-preparacao-dataset.md`) |
 
 A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git; os arquivos acima são cópias.
+
+## Preparação dos dados
+```bash
+.venv/bin/python preparar_dados.py                    # gera o dataset legível
+.venv/bin/python -m unittest discover -s tests -v     # testes da preparação
+```
+- **Origem:** `dados/tech_layoffs.csv` (nunca é alterado).
+- **Gerado:** `dados/dataset_legivel_tech_layoffs.csv` — 1.745 linhas × 21 colunas: as 18 originais + `Money_Raised_clean`, `year` e `month`, calculadas como na célula de treino do notebook.
+- Sem escala, sem encoding, sem imputação e sem log do alvo: isso fica no Pipeline de ML (etapa 03). Ausentes são preservados, e as grafias originais de categorias e empresas são mantidas.
+- As funções (`carregar_dataset`, `limpar_dataset`, `gerar_atributos_derivados`, `separar_atributos_modelo`…) podem ser importadas pelo futuro script de treino.
+- Ambiente usado: `.venv` com Python 3.14.10 e as versões do `requirements.txt` (o kit recomenda 3.12/3.13; a compatibilidade com a hospedagem ainda será verificada).
 
 ## O que ainda pertence ao exemplo do kit
 - `dados/dataset_legivel.csv` (aluguel sintético), `modelo/modelo.joblib`, `modelo/metricas.json` e `modelo/amostra_conferencia.json` (KNN de aluguel gerado por `treinar_exemplo.py`);
@@ -280,8 +295,9 @@ A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git; 
 
 ## Estado atual da integração
 - [x] Arquivos do trabalho anterior organizados no repositório (conferidos por SHA-256).
+- [x] Preparação reproduzível do dataset (`preparar_dados.py`), com testes e perfil documentado.
 - [ ] Modelo do Tech Layoffs exportado em `.joblib`, com métricas e amostra de conferência reais.
-- [ ] `dataset_legivel.csv`, `ferramentas.py` (incluindo `para_o_modelo()`) e base de conhecimento adaptados.
+- [ ] `dataset_legivel.csv` substituído pelo Tech Layoffs, `ferramentas.py` (incluindo `para_o_modelo()`) e base de conhecimento adaptados.
 - [ ] Prompts e interface adaptados.
 
 **Hoje o app ainda responde sobre o exemplo de aluguel do kit.**
@@ -291,5 +307,8 @@ A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git; 
 - Criamos `plan/01-organizacao-projeto.md` com a análise do dataset, do notebook, do RAG e das dependências.
 - `.gitignore`: acrescentamos `/dist/`, `.ipynb_checkpoints/`, `.pytest_cache/` e `.idea/`.
 - Acrescentamos esta seção ao README.
+- Criamos `preparar_dados.py`, que gera `dados/dataset_legivel_tech_layoffs.csv` a partir do CSV original.
+- Criamos testes automatizados em `tests/test_preparar_dados.py` (20 testes, `unittest`, sem novas dependências).
+- Criamos `reports/PERFIL_DATASET.md` e `plan/02-preparacao-dataset.md`.
 
-Nenhum arquivo de código do kit foi alterado até aqui.
+Nenhum arquivo de código do kit foi alterado até aqui: o agente, o modelo e o RAG ainda usam o exemplo de aluguel.
