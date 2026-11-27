@@ -1,0 +1,4 @@
+Modelo,Valores testados,Melhores parâmetros,MAE médio CV
+Regressão Linear Múltipla,sem grade (baseline),padrão,101025.850995468
+KNN,"{'model__n_neighbors': [3, 7, 15], 'model__weights': ['uniform', 'distance'], 'model__metric': ['euclidean', 'manhattan']}","{'regressor__model__metric': 'euclidean', 'regressor__model__n_neighbors': 7, 'regressor__model__weights': 'distance'}",210.18668601782343
+MLP,"{'model__hidden_layer_sizes': [(32,), (64, 32)], 'model__activation': ['relu', 'tanh'], 'model__alpha': [0.001, 0.1]}","{'regressor__model__activation': 'tanh', 'regressor__model__alpha': 0.1, 'regressor__model__hidden_layer_sizes': (64, 32)}",201.19073112323804

@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+/dist/
+.ipynb_checkpoints/
+.pytest_cache/
+.idea/

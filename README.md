@@ -249,3 +249,47 @@ Repetir numa pergunta de acompanhamento um número já obtido numa mensagem ante
 - **Variável de ambiente:** configuração fora do código (no `.env`, local, ou no painel da hospedagem).
 - **Deploy:** publicar o app na hospedagem. **Hash do commit:** o código da versão entregue.
 - **429 / 503 / 403:** cota esgotada / serviço indisponível / acesso negado.
+
+---
+
+# Adaptação do grupo: Tech Layoffs
+
+> Esta seção foi acrescentada pelo grupo. Todo o conteúdo acima é o README original do kit, mantido sem alterações.
+
+## Domínio e trabalho anterior
+O agente será adaptado para o domínio **Tech Layoffs** (demissões no setor de tecnologia, 2020–2025), usando o dataset, a análise exploratória e os modelos de regressão do Trabalho Prático anterior da disciplina. O modelo estima o **número de demitidos (`Laid_Off`) em eventos de demissão já registrados**; ele **não** prevê se uma empresa vai demitir no futuro.
+
+## Organização dos arquivos
+| Onde | O quê |
+|---|---|
+| `dados/tech_layoffs.csv` | dataset **original** do trabalho anterior (1.745 linhas × 18 colunas), sem alterações |
+| `notebooks/analise_modelos.ipynb` | notebook do trabalho anterior (EDA + Regressão Linear, KNN e MLP com GridSearchCV), com as saídas originais |
+| `reports/resultados/` | gráficos (heatmap, boxplot, histograma, frequências, previsto × real, resíduos) e tabelas (`metricas_teste.csv`, `melhores_parametros.csv`) originais |
+| `reports/ROTEIRO_RELATORIO.md` | roteiro do relatório técnico |
+| `reports/README_TRABALHO_ANTERIOR.md` | README do trabalho anterior |
+| `reports/requirements_trabalho_anterior.txt` | dependências do notebook (pandas, numpy, scikit-learn, matplotlib, seaborn, notebook) |
+| `referencias/notebook_EDA_kaggle.ipynb` | notebook EDA de referência do Kaggle |
+| `plan/` | planos de cada etapa (`01-organizacao-projeto.md`: análise completa, mapeamentos e pendências) |
+
+A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git; os arquivos acima são cópias.
+
+## O que ainda pertence ao exemplo do kit
+- `dados/dataset_legivel.csv` (aluguel sintético), `modelo/modelo.joblib`, `modelo/metricas.json` e `modelo/amostra_conferencia.json` (KNN de aluguel gerado por `treinar_exemplo.py`);
+- `ferramentas.py` (constantes e regras de aluguel), `conhecimento/analise_exploratoria.md`, `prompts/responder.md`, `static/index.html` e `versao_streamlit/streamlit_app.py`;
+- `exemplo_classificacao/` e `exemplo_transformacao/`.
+
+## Estado atual da integração
+- [x] Arquivos do trabalho anterior organizados no repositório (conferidos por SHA-256).
+- [ ] Modelo do Tech Layoffs exportado em `.joblib`, com métricas e amostra de conferência reais.
+- [ ] `dataset_legivel.csv`, `ferramentas.py` (incluindo `para_o_modelo()`) e base de conhecimento adaptados.
+- [ ] Prompts e interface adaptados.
+
+**Hoje o app ainda responde sobre o exemplo de aluguel do kit.**
+
+## O que mudamos em relação ao kit
+- Incorporamos os arquivos do trabalho anterior nas pastas `dados/`, `notebooks/`, `reports/` e `referencias/` (sem alterar seu conteúdo).
+- Criamos `plan/01-organizacao-projeto.md` com a análise do dataset, do notebook, do RAG e das dependências.
+- `.gitignore`: acrescentamos `/dist/`, `.ipynb_checkpoints/`, `.pytest_cache/` e `.idea/`.
+- Acrescentamos esta seção ao README.
+
+Nenhum arquivo de código do kit foi alterado até aqui.

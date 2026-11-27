@@ -1,5 +1,5 @@
 # Python 3.12 ou 3.13 (em 3.11 o numpy 2.5 não instala). Versões fixas: o scikit-learn (e o numpy) TÊM que ser as mesmas
-# usadas para treinar/salvar o modelo. Para descobrir as de vocês, rodem no notebook/Colab:
+# usadas para treinar/salvar o modelo. Para descobrir as de vocês, rodem no notebooks/Colab:
 #   import sklearn, numpy, sys; print(sklearn.__version__, numpy.__version__, sys.version)
 flask==3.1.3
 gunicorn==23.0.0
