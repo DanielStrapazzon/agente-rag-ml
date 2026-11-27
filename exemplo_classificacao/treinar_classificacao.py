@@ -6,6 +6,16 @@ Ele SOBRESCREVE dados/dataset_legivel.csv e modelo/ com a versão de classifica�
 O que importa copiar para o trabalho de vocês: o Pipeline com ColumnTransformer
 (o .joblib aceita as colunas ORIGINAIS, com texto) e o joblib.dump(grid.best_estimator_).
 """
+
+# --- Etapa 05 (grupo): proteção dos artefatos Tech Layoffs. Este EXEMPLO grava em dados/ e modelo/;
+# ele só roda se esses arquivos não forem do Tech Layoffs ou com PERMITIR_SOBRESCREVER_ARTEFATOS=1.
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
+from protecao_artefatos import exigir_permissao_para_sobrescrever  # noqa: E402
+exigir_permissao_para_sobrescrever(_Path(__file__).name)
+# --- fim da proteção
+
 from pathlib import Path
 import json, os, sys
 import numpy as np, pandas as pd, joblib, sklearn

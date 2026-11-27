@@ -402,6 +402,25 @@ def preparar(entrada: dict) -> tuple[dict, list[str], list[str]]:
     return {a: pronto.get(a) for a in ATRIBUTOS}, erros, alertas
 
 
+TIPOS_ALERTA = {                      # trecho da mensagem -> tipo (usado pelo agente para rotular as etapas)
+    "fora da faixa observada": "extrapolacao",
+    "declarado desconhecido": "imputacao",
+    "deduzido do país": "deducao",
+    "não apareceu no treino": "categoria_fora_do_treino",
+    "símbolo de moeda": "conversao",
+}
+
+
+def classificar_alertas(alertas: list[str]) -> dict[str, list[str]]:
+    """Agrupa os alertas de preparar() por tipo: extrapolacao, imputacao, deducao,
+    categoria_fora_do_treino, conversao, outros. Só tipos com alertas aparecem."""
+    grupos: dict[str, list[str]] = {}
+    for a in alertas:
+        tipo = next((t for trecho, t in TIPOS_ALERTA.items() if trecho in a), "outros")
+        grupos.setdefault(tipo, []).append(a)
+    return grupos
+
+
 def _regras_do_dominio(e: dict) -> list[str]:
     """Valores IMPOSSÍVEIS -> erro (não prevê)."""
     erros = []
@@ -548,6 +567,8 @@ class ConsultaInvalida(ValueError):
 
 def _valor_filtro(col: str, tipo: str, valor):
     """Converte UM valor de filtro; devolve (valores_originais | número | data, observação)."""
+    if not isinstance(valor, (str, int, float)) or isinstance(valor, bool):
+        raise ConsultaInvalida(f"valor de filtro inválido em {col}: use texto ou número (recebido: {type(valor).__name__})")
     if tipo == "texto":
         r = resolver_categoria(col, valor, "consulta")
         if r["erro"]:
@@ -707,6 +728,9 @@ def consultar_dados(consulta: dict) -> dict:
         return _nativo(_consultar(consulta))
     except ConsultaInvalida as e:
         return {"erro": str(e), "operacoes_permitidas": OPERACOES}
+    except (TypeError, ValueError, KeyError, AttributeError) as e:     # estrutura inesperada: erro controlado
+        log.warning("consulta malformada rejeitada: %s", type(e).__name__)
+        return {"erro": "consulta malformada: verifique os tipos dos campos", "operacoes_permitidas": OPERACOES}
 
 
 def _consultar(consulta: dict) -> dict:

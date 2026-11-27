@@ -6,6 +6,16 @@ No trabalho de vocês, SUBSTITUAM este script pelo código do Trabalho Prático
 anterior: o mesmo dataset limpo, o mesmo Pipeline e o melhor modelo encontrado
 no GridSearchCV, salvo com joblib.dump(...) em modelo/modelo.joblib.
 """
+
+# --- Etapa 05 (grupo): proteção dos artefatos Tech Layoffs. Este EXEMPLO grava em dados/ e modelo/;
+# ele só roda se esses arquivos não forem do Tech Layoffs ou com PERMITIR_SOBRESCREVER_ARTEFATOS=1.
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[0]))
+from protecao_artefatos import exigir_permissao_para_sobrescrever  # noqa: E402
+exigir_permissao_para_sobrescrever(_Path(__file__).name)
+# --- fim da proteção
+
 import json
 import numpy as np
 import pandas as pd

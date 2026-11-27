@@ -76,18 +76,18 @@ def chat():
     try:
         resultado = agente.responder(mensagem, historico)
     except errors.APIError as e:
-        app.logger.warning("Erro do Gemini: %s", e)
+        app.logger.warning("Erro do Gemini: código %s", getattr(e, "code", "?"))
         if getattr(e, "code", None) == 429:
             return jsonify(erro="Limite gratuito do Gemini atingido. Tente de novo em instantes."), 503
         return jsonify(erro=f"O agente está indisponível no momento (Gemini {getattr(e, 'code', '?')})."), 503
     except Exception as e:
-        app.logger.exception("Falha inesperada no agente")
+        app.logger.exception("Falha inesperada no agente (%s)", type(e).__name__)
         if any(k in type(e).__name__ for k in ("Timeout", "Connect", "Proxy", "Network")):
             return jsonify(erro="Falha de rede ao falar com o Gemini. Tente de novo em instantes."), 503
         return jsonify(erro="Erro interno no agente. Veja o log do servidor."), 500
 
-    app.logger.info("pergunta=%r etapas=%s", mensagem[:80], resultado["etapas"])
-    return jsonify(resposta=resultado["resposta"], etapas=resultado["etapas"])
+    app.logger.info("pergunta=%r etapas=%s", mensagem[:60], resultado["etapas"])   # pergunta truncada; nunca a chave
+    return jsonify(resposta=resultado["resposta"], etapas=resultado["etapas"], fontes=resultado.get("fontes", []))
 
 
 if __name__ == "__main__":

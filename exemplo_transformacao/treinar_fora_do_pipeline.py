@@ -10,6 +10,16 @@ e o modelo é treinado nesses dados transformados.
 O que NÃO pode ser esquecido: salvar os transformadores AJUSTADOS (scaler, lista de colunas,
 mapas de códigos) para aplicar a MESMA transformação na entrada do usuário (para_o_modelo).
 """
+
+# --- Etapa 05 (grupo): proteção dos artefatos Tech Layoffs. Este EXEMPLO grava em dados/ e modelo/;
+# ele só roda se esses arquivos não forem do Tech Layoffs ou com PERMITIR_SOBRESCREVER_ARTEFATOS=1.
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
+from protecao_artefatos import exigir_permissao_para_sobrescrever  # noqa: E402
+exigir_permissao_para_sobrescrever(_Path(__file__).name)
+# --- fim da proteção
+
 import json
 import os
 from pathlib import Path
