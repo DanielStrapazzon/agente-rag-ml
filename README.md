@@ -282,7 +282,8 @@ Caminhos canônicos (um único caminho por artefato):
 | `agente.py`, `prompts/` | agente conversacional (5 etapas) e prompts do Tech Layoffs |
 | `static/` | interface Flask: `index.html`, `css/app.css`, `js/app.js`, `assets/favicon.svg` |
 | `protecao_artefatos.py` | impede que os scripts de exemplo do kit sobrescrevam `dados/` e `modelo/` |
-| `tests/` | 162 testes `unittest` (preparação, modelo, ferramentas, recuperação, agente com Gemini simulado, servidor, interface) |
+| `tests/` | 169 testes `unittest` (preparação, modelo, ferramentas, recuperação, agente com Gemini simulado, servidor, interface, validador) |
+| `validar_agente.py`, `reports/validacao/` | validação acadêmica: gabaritos, bateria de 12 testes + robustez, evidências, roteiro de apresentação, checklist |
 | `plan/` | planos de cada etapa (`01` a `04`) |
 
 A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git. Os artefatos de aluguel do kit foram substituídos na etapa 04 e podem ser recuperados no Git (`git show 98a8383:modelo/metricas.json`).
@@ -293,7 +294,8 @@ A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git. 
 ```bash
 .venv/bin/python preparar_dados.py                    # dados/tech_layoffs.csv -> dados/dataset_legivel.csv
 .venv/bin/python treinar.py                           # ~25 s; gera modelo/ e reports/novo_treinamento/
-.venv/bin/python -m unittest discover -s tests -v     # 162 testes, sem Gemini (o Gemini é simulado)
+.venv/bin/python -m unittest discover -s tests -v     # 169 testes, sem Gemini (o Gemini é simulado)
+.venv/bin/python validar_agente.py                    # gabaritos + bateria acadêmica SIMULADA (não chama a API)
 .venv/bin/python app.py                               # interface em http://localhost:5000 (precisa do .env para conversar)
 .venv/bin/python testar_sem_api.py                    # checagem rápida, sem Gemini
 .venv/bin/python conferir.py                          # "gabarito": estatísticas e previsões reais
@@ -558,13 +560,31 @@ No navegador também foi confirmado que:
 - uma resposta com `<img onerror>` aparece como texto e nenhum `<img>` é criado;
 - Nova conversa aborta a requisição pendente e nenhuma resposta antiga aparece depois.
 
-## Estado atual da integração
-- [x] Etapas 01 a 05: organização, preparação, modelo MLP, ferramentas, RAG e agente.
-- [x] Etapa 06: interface Flask Tech Layoffs, indicadores reais, etapas e fontes, gráficos de resultados estruturados, Streamlit adaptado; 162 testes offline.
-- [ ] **Validação com o Gemini real:** pendente de autorização para usar a cota (roteiro na seção do agente).
-- [ ] Etapa 07: testes e validação acadêmica (bateria do professor, comparação com/sem RAG, relatório).
+## Validação acadêmica (etapa 07)
+Tudo está em `reports/validacao/` (o roteiro de execução está em `ROTEIRO_TESTES.md`).
+- **Gabaritos (`GABARITO.md`):** gerados por `validar_agente.py` com pandas direto no CSV original e `modelo.predict()` com a ponte validada. Nenhum gabarito vem do Gemini.
+- **Bateria (`bateria_testes.json`):** os 12 testes das categorias do kit, mais 06b (mês 13) e 09b (exposição de chave), e 14 testes de robustez. Cada teste traz gabarito, etapas esperadas e proibidas, números esperados e proibidos, e a interpretação esperada (usada só no modo simulado).
+  - O cenário do teste 04 usa o setor **Security**, porque "Enterprise" não existe no dataset.
+- **Modo offline (padrão):** roda a bateria com o Gemini simulado. Resultado: 28/28 com nota sugerida 1,0. Isso valida as ferramentas e as etapas, **não** a interpretação do Gemini.
+- **Modo real (`--executar`):**
+  - `--smoke` roda só o teste 01; `--teste`/`--grupo` escolhem testes; `--continuar` retoma; `--max-chamadas` limita o gasto;
+  - salva a cada teste e separa os erros (403, 429, 503, timeout, interpretação, ferramenta, verificação);
+  - a nota automática (1,0/0,5/0,0, tolerância de 1%) é só uma **sugestão**: a revisão humana é obrigatória.
+- **`comparar_sem_rag.py --executar`:** 3 modos (Gemini puro, agente sem RAG, agente completo) com as 5 perguntas, gravados em JSON. A metodologia está em `COMPARACAO_RAG.md`.
+- **Outros documentos:**
+  - `RESULTADOS_OFFLINE.md`: os 169 testes, scripts, hashes e a bateria simulada;
+  - `RESULTADOS_VALIDACAO.md`: tabela da bateria com gabaritos, **resultados reais pendentes**;
+  - `ROTEIRO_APRESENTACAO.md`: demonstração de 3 minutos e perguntas de estudo;
+  - `CHECKLIST_ENTREGA.md`: requisitos e hospedagem;
+  - `USO_DE_IA.md`: rascunho da declaração de uso de IA.
 
-**Os testes offline e a validação visual usam o agente/Gemini simulado: eles não provam que a API real interpreta bem as perguntas.**
+## Estado atual da integração
+- [x] Etapas 01 a 06: organização, preparação, modelo MLP, ferramentas, RAG, agente e interface.
+- [x] Etapa 07 (preparação): 169 testes offline; gabaritos; bateria; scripts de validação real; evidências; roteiro; checklist.
+- [ ] **Validação com o Gemini real** (smoke, bateria e comparação com/sem RAG): **pendente de autorização** para usar a cota.
+- [ ] Publicação, `links.txt`, alinhamento da versão do Python com a hospedagem (3.14.10 × `.python-version` 3.13) e relatório final (etapa 08).
+
+**Os testes offline usam o Gemini simulado: eles não provam que a API real interpreta bem as perguntas.**
 
 ## O que mudamos em relação ao kit
 - **Etapa 01:**
@@ -615,4 +635,9 @@ No navegador também foi confirmado que:
   - **`agente.py`:** `_evidencias()` (a pergunta interpretada não é evidência), resposta determinística de previsão com alertas, `dados` no retorno;
   - **`versao_streamlit/streamlit_app.py`:** Tech Layoffs, com fontes e etapas;
   - **testes:** `tests/test_frontend.py` (17).
-- **Uso de IA:** todos os arquivos criados e alterados nas etapas 01 a 06 foram implementados com apoio do **Claude Code** (Anthropic), em especial `preparar_dados.py`, `treinar.py`, `previsao_layoffs.py`, `ferramentas.py`, `recuperacao.py`, `agente.py`, `app.py`, `prompts/*.md`, `static/*` (interface), `versao_streamlit/streamlit_app.py`, `protecao_artefatos.py`, `comparar_sem_rag.py`, `conhecimento/*.md`, `testar_sem_api.py`, `conferir.py`, `tests/*` e `plan/*`. O grupo revisou e executou tudo. Isso vai para a declaração de uso de IA do relatório.
+- **Etapa 07:**
+  - `validar_agente.py`: gabaritos independentes, bateria acadêmica, modo simulado e modo real controlado;
+  - `comparar_sem_rag.py`: grava os resultados em JSON, com tempos, conferência do gabarito, erros e `--continuar`;
+  - `tests/test_validacao.py` (7);
+  - documentos em `reports/validacao/`.
+- **Uso de IA:** todos os arquivos criados e alterados nas etapas 01 a 07 foram implementados com apoio do **Claude Code** (Anthropic); o ChatGPT foi usado pelo grupo no planejamento e na redação dos enunciados de cada etapa (registro detalhado em `reports/validacao/USO_DE_IA.md`), em especial `preparar_dados.py`, `treinar.py`, `previsao_layoffs.py`, `ferramentas.py`, `recuperacao.py`, `agente.py`, `app.py`, `prompts/*.md`, `static/*` (interface), `versao_streamlit/streamlit_app.py`, `validar_agente.py`, `reports/validacao/*`, `protecao_artefatos.py`, `comparar_sem_rag.py`, `conhecimento/*.md`, `testar_sem_api.py`, `conferir.py`, `tests/*` e `plan/*`. O grupo revisou e executou tudo. Isso vai para a declaração de uso de IA do relatório.
