@@ -271,9 +271,13 @@ O agente será adaptado para o domínio **Tech Layoffs** (demissões no setor de
 | `referencias/notebook_EDA_kaggle.ipynb` | notebook EDA de referência do Kaggle |
 | `dados/dataset_legivel_tech_layoffs.csv` | dataset **preparado** (legível), gerado por `preparar_dados.py` |
 | `preparar_dados.py` | preparação reproduzível dos dados (limpeza do notebook, sem transformações de modelo) |
-| `tests/` | testes automatizados (`unittest`) da preparação |
+| `treinar.py` | treino reproduzível do modelo Tech Layoffs (3 algoritmos, GridSearchCV) |
+| `previsao_layoffs.py` | previsão independente do Gemini: conversão da entrada legível, corte em zero, alertas |
+| `modelo_tech_layoffs/` | modelo Tech Layoffs (`modelo.joblib`, `metricas.json`, `amostra_conferencia.json`) — **ainda não usado pelo agente** |
+| `reports/novo_treinamento/` | métricas do novo treino e `COMPARACAO_TREINAMENTO.md` (comparação com o original) |
+| `tests/` | testes automatizados (`unittest`) da preparação e do modelo |
 | `reports/PERFIL_DATASET.md` | perfil do dataset: dicionário, estatísticas reais, inconsistências e limitações |
-| `plan/` | planos de cada etapa (`01-organizacao-projeto.md`, `02-preparacao-dataset.md`) |
+| `plan/` | planos de cada etapa (`01-organizacao-projeto.md`, `02-preparacao-dataset.md`, `03-machine-learning.md`) |
 
 A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git; os arquivos acima são cópias.
 
@@ -288,6 +292,32 @@ A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git; 
 - As funções (`carregar_dataset`, `limpar_dataset`, `gerar_atributos_derivados`, `separar_atributos_modelo`…) podem ser importadas pelo futuro script de treino.
 - Ambiente usado: `.venv` com Python 3.14.10 e as versões do `requirements.txt` (o kit recomenda 3.12/3.13; a compatibilidade com a hospedagem ainda será verificada).
 
+## Modelo de Machine Learning (Tech Layoffs)
+```bash
+.venv/bin/python treinar.py                           # ~25 s; gera modelo_tech_layoffs/ e reports/novo_treinamento/
+.venv/bin/python -m unittest discover -s tests -v     # 41 testes (preparação + modelo; usam os artefatos gerados)
+```
+- **O que o modelo faz:** estima **quantos funcionários foram demitidos** num evento de demissão com as características informadas. Ele **não** prevê se uma empresa vai demitir, nem a probabilidade disso.
+- **Dados:** `treinar.py` usa `preparar_dados.preparar()` e `separar_atributos_modelo()` (a mesma limpeza da etapa 02). As 8 entradas são `Country`, `Continent`, `Industry`, `Stage`, `Company_Size_before_Layoffs`, `Money_Raised_clean`, `year` e `month`; o alvo é `Laid_Off`. `Percentage` e `Company_Size_after_layoffs` ficam de fora porque vazariam a resposta.
+- **Metodologia do notebook reproduzida:** divisão 80/20 com seed 42; Pipeline com imputação, `StandardScaler` e `OneHotEncoder`; `log1p` no alvo; `GridSearchCV` com 5 folds e MAE; previsões limitadas a ≥ 0.
+- **Algoritmos avaliados (teste com 349 eventos):**
+
+| Modelo | MAE CV | MAE teste | RMSE teste | R² teste |
+|---|---:|---:|---:|---:|
+| **MLP** (tanh, alpha 0,1, camadas 64-32) | **201,19** | **236,03** | **851,53** | **0,5537** |
+| KNN (k=7, distance, euclidean) | 210,19 | 258,29 | 884,34 | 0,5186 |
+| Regressão Linear Múltipla | 101.025,85 | 884,24 | 8.331,71 | −41,73 |
+
+- **Modelo selecionado: MLP**, pelo menor MAE na validação cruzada (o teste não entrou na escolha). Os resultados são iguais aos do trabalho anterior até a 13ª casa decimal; veja `reports/novo_treinamento/COMPARACAO_TREINAMENTO.md`.
+- **Limitações:**
+  - a vantagem do MLP sobre o KNN é pequena;
+  - o erro se concentra nos eventos grandes: MAE de 2.171,4 nos 18 eventos de teste com mais de 1.000 demitidos, contra 130,8 nos demais;
+  - em 14 dos 349 eventos de teste, a previsão supera o porte anterior da empresa;
+  - a divisão é aleatória, então não mostra desempenho em anos futuros;
+  - empresas se repetem entre treino e teste, e há categorias raras;
+  - o MAE não é intervalo de confiança, e o R² não é acurácia.
+- O `.joblib` guarda um `previsao_layoffs.EstimadorNaoNegativo`. Para carregá-lo, `previsao_layoffs.py` e `preparar_dados.py` precisam estar na raiz do projeto. Ambiente do treino: Python 3.14.10, scikit-learn 1.9.1, numpy 2.5.3.
+
 ## O que ainda pertence ao exemplo do kit
 - `dados/dataset_legivel.csv` (aluguel sintético), `modelo/modelo.joblib`, `modelo/metricas.json` e `modelo/amostra_conferencia.json` (KNN de aluguel gerado por `treinar_exemplo.py`);
 - `ferramentas.py` (constantes e regras de aluguel), `conhecimento/analise_exploratoria.md`, `prompts/responder.md`, `static/index.html` e `versao_streamlit/streamlit_app.py`;
@@ -296,7 +326,8 @@ A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git; 
 ## Estado atual da integração
 - [x] Arquivos do trabalho anterior organizados no repositório (conferidos por SHA-256).
 - [x] Preparação reproduzível do dataset (`preparar_dados.py`), com testes e perfil documentado.
-- [ ] Modelo do Tech Layoffs exportado em `.joblib`, com métricas e amostra de conferência reais.
+- [x] Modelo do Tech Layoffs treinado e exportado em `modelo_tech_layoffs/`, com métricas e amostra de conferência reais.
+- [ ] Modelo Tech Layoffs movido para `modelo/` e usado pelo agente.
 - [ ] `dataset_legivel.csv` substituído pelo Tech Layoffs, `ferramentas.py` (incluindo `para_o_modelo()`) e base de conhecimento adaptados.
 - [ ] Prompts e interface adaptados.
 
@@ -310,5 +341,10 @@ A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git; 
 - Criamos `preparar_dados.py`, que gera `dados/dataset_legivel_tech_layoffs.csv` a partir do CSV original.
 - Criamos testes automatizados em `tests/test_preparar_dados.py` (20 testes, `unittest`, sem novas dependências).
 - Criamos `reports/PERFIL_DATASET.md` e `plan/02-preparacao-dataset.md`.
+- Criamos `treinar.py`, que reproduz o treino do notebook a partir de `preparar_dados.py` e escolhe o modelo pelo MAE de validação cruzada (o notebook escolhia pelo MAE de teste).
+- Criamos `previsao_layoffs.py`, com o corte em zero serializado no próprio modelo (`EstimadorNaoNegativo`) e a função `prever_demissoes()`. Ela avisa quando há entradas ausentes, categorias desconhecidas ou previsão maior que o porte da empresa.
+- Geramos `modelo_tech_layoffs/` e `reports/novo_treinamento/` (os resultados originais em `reports/resultados/` foram mantidos).
+- Criamos `tests/test_machine_learning.py` (21 testes) e `plan/03-machine-learning.md`.
+- Os arquivos novos foram implementados com apoio do Claude Code (Anthropic) e revisados e executados pelo grupo. Isso vai para a declaração de uso de IA.
 
-Nenhum arquivo de código do kit foi alterado até aqui: o agente, o modelo e o RAG ainda usam o exemplo de aluguel.
+Nenhum arquivo de código do kit foi alterado até aqui: **o agente, o modelo em `modelo/` e o RAG ainda usam o exemplo de aluguel.**
