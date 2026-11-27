@@ -10,7 +10,8 @@ Idêntica às células 7 e 9 de `notebooks/analise_modelos.ipynb`:
 
 - **Dados:** `dados/tech_layoffs.csv` preparado por `preparar_dados.py` (mesma limpeza do notebook):
   1.745 eventos, nenhum removido. As entradas obtidas da preparação e do CSV legível
-  `dados/dataset_legivel_tech_layoffs.csv` são idênticas (conferido em `treinar.py`).
+  `dados/dataset_legivel_tech_layoffs.csv` (desde a etapa 04: `dados/dataset_legivel.csv`) são idênticas
+  (conferido em `treinar.py`).
 - **Entradas (8):** `Country`, `Continent`, `Industry`, `Stage` (categóricas);
   `Company_Size_before_Layoffs`, `Money_Raised_clean`, `year`, `month` (numéricas).
   **Alvo:** `Laid_Off`. **Excluídas por vazamento:** `Percentage`, `Company_Size_after_layoffs`.
@@ -72,7 +73,7 @@ erro de arredondamento de ponto flutuante. As grades testadas e os melhores par�
   log com `expm1`. Em alguns eventos, um log previsto alto vira um número astronômico de demitidos.
   Ela serve como referência (baseline), não como candidata.
 
-Artefatos: `modelo_tech_layoffs/modelo.joblib` (MLP + pré-processamento + log1p/expm1 + corte em 0),
+Artefatos (gerados em `modelo_tech_layoffs/`; movidos para `modelo/` na etapa 04, sem retreino): `modelo.joblib` (MLP + pré-processamento + log1p/expm1 + corte em 0),
 `metricas.json` e `amostra_conferencia.json` (6 entradas do teste; a última tem `Stage` e
 `Money_Raised_clean` nulos).
 

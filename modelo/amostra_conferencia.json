@@ -1,47 +1,80 @@
 [
- {
-  "entrada": {
-   "area_m2": 56.0,
-   "quartos": 1,
-   "vagas": 2,
-   "bairro": "Passo dos Fortes"
+  {
+    "entrada": {
+      "Country": "Canada",
+      "Continent": "North America",
+      "Industry": "Media",
+      "Stage": "Post-IPO",
+      "Company_Size_before_Layoffs": 61,
+      "Money_Raised_clean": 3,
+      "year": 2022,
+      "month": 4
+    },
+    "previsao_no_treino": 59.05846130605191
   },
-  "previsao_no_treino": 1809.959532771386
- },
- {
-  "entrada": {
-   "area_m2": 66.0,
-   "quartos": 4,
-   "vagas": 2,
-   "bairro": "Centro"
+  {
+    "entrada": {
+      "Country": "USA",
+      "Continent": "North America",
+      "Industry": "Real Estate",
+      "Stage": "Unknown",
+      "Company_Size_before_Layoffs": 10000,
+      "Money_Raised_clean": 905,
+      "year": 2021,
+      "month": 12
+    },
+    "previsao_no_treino": 590.3341679533153
   },
-  "previsao_no_treino": 3564.6527382257773
- },
- {
-  "entrada": {
-   "area_m2": 31.0,
-   "quartos": 3,
-   "vagas": 1,
-   "bairro": "Centro"
+  {
+    "entrada": {
+      "Country": "Netherlands",
+      "Continent": "Europe",
+      "Industry": "Other",
+      "Stage": "Acquired",
+      "Company_Size_before_Layoffs": 347,
+      "Money_Raised_clean": 64,
+      "year": 2024,
+      "month": 9
+    },
+    "previsao_no_treino": 101.78414332380514
   },
-  "previsao_no_treino": 1414.0
- },
- {
-  "entrada": {
-   "area_m2": 200.0,
-   "quartos": 1,
-   "vagas": 1,
-   "bairro": "Centro"
+  {
+    "entrada": {
+      "Country": "USA",
+      "Continent": "North America",
+      "Industry": "Marketing",
+      "Stage": "Series C",
+      "Company_Size_before_Layoffs": 60,
+      "Money_Raised_clean": 46,
+      "year": 2020,
+      "month": 4
+    },
+    "previsao_no_treino": 34.80782139987358
   },
-  "previsao_no_treino": 5467.677301813407
- },
- {
-  "entrada": {
-   "area_m2": 198.0,
-   "quartos": 1,
-   "vagas": 0,
-   "bairro": "Jardim Itália"
+  {
+    "entrada": {
+      "Country": "Indonesia",
+      "Continent": "Asia",
+      "Industry": "Finance",
+      "Stage": "Unknown",
+      "Company_Size_before_Layoffs": 838,
+      "Money_Raised_clean": 245,
+      "year": 2022,
+      "month": 11
+    },
+    "previsao_no_treino": 94.1569685260133
   },
-  "previsao_no_treino": 4535.45239184054
- }
+  {
+    "entrada": {
+      "Country": "USA",
+      "Continent": "North America",
+      "Industry": "Semiconductor Manufacturing",
+      "Stage": null,
+      "Company_Size_before_Layoffs": 35000,
+      "Money_Raised_clean": null,
+      "year": 2025,
+      "month": 10
+    },
+    "previsao_no_treino": 2659.0593280930298
+  }
 ]

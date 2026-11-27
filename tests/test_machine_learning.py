@@ -2,7 +2,7 @@
 
     .venv/bin/python -m unittest discover -s tests -v
 
-Usam os artefatos JÁ GERADOS por `.venv/bin/python treinar.py` em modelo_tech_layoffs/
+Usam os artefatos JÁ GERADOS por `.venv/bin/python treinar.py` em modelo/ (caminho canônico desde a etapa 04)
 (não refazem o GridSearchCV). Implementado com apoio do Claude Code (Anthropic).
 """
 import hashlib
@@ -27,13 +27,15 @@ sys.path.insert(0, str(RAIZ))
 import preparar_dados as P  # noqa: E402
 import previsao_layoffs as M  # noqa: E402
 
-PASTA = RAIZ / "modelo_tech_layoffs"
+PASTA = RAIZ / "modelo"
 HASH_ORIGINAL = "a9ef120e81d7206de5be8a56337c0c008792363fec9ad65597610f9d32d81e6a"
-HASHES_KIT = {  # exemplo de aluguel do kit: não pode mudar nesta etapa
-    "modelo/modelo.joblib": "d1d40c71824e1e30ae8e5c2a29af6198f329de6f35edd7cd13026838a7d36113",
-    "modelo/metricas.json": "a7723936fe8ad3ddd2299bf0fd865b65a25ad755a0fb431ec1140e63993bf163",
-    "modelo/amostra_conferencia.json": "f7c82eebfc502e603bd7e0f5a862999b52d70652d243b29b570d786d82cda882",
-    "dados/dataset_legivel.csv": "a2b88292f1c05ab9c9fae8ba84b170bd74a8b7e653485d531d4ab14a88c0f283",
+# Etapa 04: os artefatos de aluguel foram substituídos pelos do Tech Layoffs (recuperáveis no Git,
+# commit 98a8383). Estes hashes são os da etapa 03: se mudarem, o modelo foi retreinado ou alterado.
+HASHES_DEFINITIVOS = {
+    "modelo/modelo.joblib": "903684f62204ff59a50652859e6330cff472cec7d97ecbd31e6911c8dd549caf",
+    "modelo/metricas.json": "048129701c4881f5126e33dc52ae49f262d839ac998d5a0e4af3f134d88afe71",
+    "modelo/amostra_conferencia.json": "52b2b182aed3518a45a86c6407b13f939a86fefd25653462de73d8f2ec089fa4",
+    "dados/dataset_legivel.csv": "dbe54cfd786fb57f393563b2ad76943f821f882349acccfc270251c413295909",
 }
 ENTRADAS_NOTEBOOK = ["Country", "Continent", "Industry", "Stage",
                      "Company_Size_before_Layoffs", "Money_Raised_clean", "year", "month"]
@@ -212,9 +214,13 @@ class TestModeloTechLayoffs(unittest.TestCase):
     def test_dataset_original_preservado(self):
         self.assertEqual(sha256(P.ORIGEM), HASH_ORIGINAL)
 
-    def test_modelo_de_aluguel_preservado(self):
-        for arquivo, esperado in HASHES_KIT.items():
+    def test_artefatos_definitivos_sao_os_da_etapa_03(self):
+        for arquivo, esperado in HASHES_DEFINITIVOS.items():
             self.assertEqual(sha256(RAIZ / arquivo), esperado, arquivo)
+
+    def test_nao_restam_artefatos_de_aluguel(self):
+        self.assertNotIn("aluguel", (PASTA / "metricas.json").read_text(encoding="utf-8").lower())
+        self.assertNotIn("area_m2", (RAIZ / "dados" / "dataset_legivel.csv").read_text(encoding="utf-8")[:500])
 
 
 if __name__ == "__main__":

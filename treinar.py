@@ -3,10 +3,10 @@ Treino do modelo Tech Layoffs (etapa 03) — reproduz as células 7 e 9 de noteb
 
     .venv/bin/python treinar.py
 
-Gera (sem tocar em modelo/, que ainda é o exemplo de aluguel do kit):
-    modelo_tech_layoffs/modelo.joblib            melhor estimador (pré-processamento + log1p + corte em 0)
-    modelo_tech_layoffs/metricas.json            métricas reais, versões, hashes
-    modelo_tech_layoffs/amostra_conferencia.json entradas legíveis do teste + previsão do treino
+Gera (caminhos canônicos do kit desde a etapa 04):
+    modelo/modelo.joblib            melhor estimador (pré-processamento + log1p + corte em 0)
+    modelo/metricas.json            métricas reais, versões, hashes
+    modelo/amostra_conferencia.json entradas legíveis do teste + previsão do treino
     reports/novo_treinamento/metricas_teste.csv, melhores_parametros.csv
 
 Seleção do modelo: menor MAE médio da validação cruzada (o teste não participa da escolha).

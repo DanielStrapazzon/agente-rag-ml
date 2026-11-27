@@ -5,7 +5,7 @@ O modelo estima QUANTOS funcionários foram demitidos em um evento de demissão,
 informado (país, setor, estágio, porte, capital, ano, mês). NÃO estima a probabilidade de uma
 empresa demitir: o dataset só contém eventos que aconteceram.
 
-Este módulo precisa estar importável para carregar modelo_tech_layoffs/modelo.joblib, porque o
+Este módulo precisa estar importável para carregar modelo/modelo.joblib, porque o
 objeto salvo é um EstimadorNaoNegativo (definido aqui, e não em __main__).
 
 Implementado com apoio do Claude Code (Anthropic); revisado e executado pelo grupo.
@@ -21,7 +21,7 @@ from sklearn.base import BaseEstimator, RegressorMixin, clone
 from preparar_dados import CATEGORICAS, NUMERICAS
 
 BASE = Path(__file__).resolve().parent
-PASTA_MODELO = BASE / "modelo_tech_layoffs"
+PASTA_MODELO = BASE / "modelo"                # caminho canônico do kit (etapa 04)
 ENTRADAS = CATEGORICAS + NUMERICAS          # ordem exata do notebook
 UNIDADE_ALVO = "funcionários demitidos no evento"
 
@@ -101,6 +101,16 @@ def categorias_conhecidas(modelo) -> dict[str, list[str]]:
     ttr = modelo._ajustado() if isinstance(modelo, EstimadorNaoNegativo) else modelo
     encoder = ttr.regressor_.named_steps["prep"].named_transformers_["cat"].named_steps["encoder"]
     return {col: [str(c) for c in cats] for col, cats in zip(CATEGORICAS, encoder.categories_)}
+
+
+def valores_imputados(modelo) -> dict:
+    """Valor que o Pipeline usa no lugar de um atributo ausente (aprendido só no treino):
+    mediana para as numéricas, categoria mais frequente para as categóricas."""
+    ttr = modelo._ajustado() if isinstance(modelo, EstimadorNaoNegativo) else modelo
+    prep = ttr.regressor_.named_steps["prep"].named_transformers_
+    num = prep["num"].named_steps["imputer"].statistics_
+    cat = prep["cat"].named_steps["imputer"].statistics_
+    return {**{c: float(v) for c, v in zip(NUMERICAS, num)}, **{c: str(v) for c, v in zip(CATEGORICAS, cat)}}
 
 
 def prever_demissoes(entrada: dict, modelo=None) -> dict:

@@ -92,7 +92,7 @@ Reproduzem a célula 7 (treino) de `notebooks/analise_modelos.ipynb`:
 `OneHotEncoder`, `LabelEncoder`, `log1p` do alvo. Nenhum ausente foi trocado por zero e nenhuma grafia
 de categoria ou empresa foi alterada.
 
-Exportação (`dados/dataset_legivel_tech_layoffs.csv`): UTF-8, separador vírgula, quebra `\n`, sem
+Exportação (`dados/dataset_legivel.csv` desde a etapa 04; até a etapa 03, `dados/dataset_legivel_tech_layoffs.csv`): UTF-8, separador vírgula, quebra `\n`, sem
 índice; data `AAAA-MM-DD`; contagens inteiras escritas sem `.0` (`20` em vez de `20.0`); ausentes
 como campo vazio; colunas originais na ordem do CSV seguidas de `Money_Raised_clean`, `year`, `month`.
 
@@ -249,7 +249,7 @@ unificá-las mudaria a metodologia e deve ser uma decisão explícita na etapa d
 
 ## 9. Diferenças entre o dataset original e o preparado
 
-| | `dados/tech_layoffs.csv` | `dados/dataset_legivel_tech_layoffs.csv` |
+| | `dados/tech_layoffs.csv` | `dados/dataset_legivel.csv` |
 |---|---|---|
 | Linhas | 1.745 | 1.745 (nenhuma removida) |
 | Colunas | 18 | 21 (+ `Money_Raised_clean`, `year`, `month`) |

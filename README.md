@@ -257,50 +257,58 @@ Repetir numa pergunta de acompanhamento um número já obtido numa mensagem ante
 > Esta seção foi acrescentada pelo grupo. Todo o conteúdo acima é o README original do kit, mantido sem alterações.
 
 ## Domínio e trabalho anterior
-O agente será adaptado para o domínio **Tech Layoffs** (demissões no setor de tecnologia, 2020–2025), usando o dataset, a análise exploratória e os modelos de regressão do Trabalho Prático anterior da disciplina. O modelo estima o **número de demitidos (`Laid_Off`) em eventos de demissão já registrados**; ele **não** prevê se uma empresa vai demitir no futuro.
+O agente trata do domínio **Tech Layoffs** (demissões no setor de tecnologia, 2020–2025) e usa o dataset, a análise exploratória e os modelos de regressão do Trabalho Prático anterior da disciplina. O foco é a **análise estatística** das demissões. O modelo estima o **número de demitidos (`Laid_Off`) num evento de demissão** com as características informadas; ele **não** prevê se uma empresa vai demitir, nem a probabilidade disso.
 
 ## Organização dos arquivos
+Caminhos canônicos (um único caminho por artefato):
+
 | Onde | O quê |
 |---|---|
-| `dados/tech_layoffs.csv` | dataset **original** do trabalho anterior (1.745 linhas × 18 colunas), sem alterações |
-| `notebooks/analise_modelos.ipynb` | notebook do trabalho anterior (EDA + Regressão Linear, KNN e MLP com GridSearchCV), com as saídas originais |
-| `reports/resultados/` | gráficos (heatmap, boxplot, histograma, frequências, previsto × real, resíduos) e tabelas (`metricas_teste.csv`, `melhores_parametros.csv`) originais |
-| `reports/ROTEIRO_RELATORIO.md` | roteiro do relatório técnico |
-| `reports/README_TRABALHO_ANTERIOR.md` | README do trabalho anterior |
-| `reports/requirements_trabalho_anterior.txt` | dependências do notebook (pandas, numpy, scikit-learn, matplotlib, seaborn, notebook) |
-| `referencias/notebook_EDA_kaggle.ipynb` | notebook EDA de referência do Kaggle |
-| `dados/dataset_legivel_tech_layoffs.csv` | dataset **preparado** (legível), gerado por `preparar_dados.py` |
+| `dados/tech_layoffs.csv` | dataset **original** do trabalho anterior (1.745 linhas × 18 colunas), nunca alterado |
+| `dados/dataset_legivel.csv` | dataset **preparado** (legível), gerado por `preparar_dados.py`; usado por `ferramentas.py` |
+| `modelo/modelo.joblib`, `metricas.json`, `amostra_conferencia.json` | modelo **MLP** do Tech Layoffs, gerado por `treinar.py` |
+| `conhecimento/` | base de conhecimento do RAG: `descricao_dataset.md`, `analise_exploratoria.md`, `modelo_metricas.md`, `limitacoes.md` |
 | `preparar_dados.py` | preparação reproduzível dos dados (limpeza do notebook, sem transformações de modelo) |
-| `treinar.py` | treino reproduzível do modelo Tech Layoffs (3 algoritmos, GridSearchCV) |
-| `previsao_layoffs.py` | previsão independente do Gemini: conversão da entrada legível, corte em zero, alertas |
-| `modelo_tech_layoffs/` | modelo Tech Layoffs (`modelo.joblib`, `metricas.json`, `amostra_conferencia.json`) — **ainda não usado pelo agente** |
-| `reports/novo_treinamento/` | métricas do novo treino e `COMPARACAO_TREINAMENTO.md` (comparação com o original) |
-| `tests/` | testes automatizados (`unittest`) da preparação e do modelo |
-| `reports/PERFIL_DATASET.md` | perfil do dataset: dicionário, estatísticas reais, inconsistências e limitações |
-| `plan/` | planos de cada etapa (`01-organizacao-projeto.md`, `02-preparacao-dataset.md`, `03-machine-learning.md`) |
+| `treinar.py` | treino reproduzível (3 algoritmos, GridSearchCV) |
+| `previsao_layoffs.py` | conversão da entrada legível, corte em zero serializado, `prever_demissoes()` |
+| `ferramentas.py` | validação, aliases, previsão, casos semelhantes, `consultar_dados()`, fatos do RAG |
+| `recuperacao.py` | RAG: TF-IDF + cosseno, com fonte/seção e expansão de sinônimos |
+| `notebooks/analise_modelos.ipynb` | notebook do trabalho anterior, com as saídas originais |
+| `reports/resultados/` | gráficos e tabelas **originais** do trabalho anterior |
+| `reports/novo_treinamento/` | métricas do novo treino e `COMPARACAO_TREINAMENTO.md` |
+| `reports/PERFIL_DATASET.md` | perfil do dataset: dicionário, estatísticas reais, inconsistências, limitações |
+| `reports/ROTEIRO_RELATORIO.md`, `README_TRABALHO_ANTERIOR.md`, `requirements_trabalho_anterior.txt` | material do trabalho anterior |
+| `referencias/notebook_EDA_kaggle.ipynb` | notebook EDA de referência do Kaggle |
+| `tests/` | 95 testes `unittest` (preparação, modelo, ferramentas, recuperação) |
+| `plan/` | planos de cada etapa (`01` a `04`) |
 
-A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git; os arquivos acima são cópias.
+A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git. Os artefatos de aluguel do kit foram substituídos na etapa 04 e podem ser recuperados no Git (`git show 98a8383:modelo/metricas.json`).
+
+⚠️ `treinar_exemplo.py`, `exemplo_classificacao/treinar_classificacao.py` e `exemplo_transformacao/treinar_fora_do_pipeline.py` são exemplos do kit e **gravam em `dados/` e `modelo/`**. Rodá-los sobrescreve os artefatos do Tech Layoffs. Para recuperar: `.venv/bin/python preparar_dados.py && .venv/bin/python treinar.py`.
+
+## Como executar
+```bash
+.venv/bin/python preparar_dados.py                    # dados/tech_layoffs.csv -> dados/dataset_legivel.csv
+.venv/bin/python treinar.py                           # ~25 s; gera modelo/ e reports/novo_treinamento/
+.venv/bin/python -m unittest discover -s tests -v     # 95 testes, sem Gemini
+.venv/bin/python testar_sem_api.py                    # checagem rápida, sem Gemini
+.venv/bin/python conferir.py                          # "gabarito": estatísticas e previsões reais
+```
+Ambiente: `.venv` com Python 3.14.10, scikit-learn 1.9.1, numpy 2.5.3, pandas 3.0.5, joblib 1.6.0 (o kit recomenda 3.12/3.13; a compatibilidade com a hospedagem ainda será verificada).
 
 ## Preparação dos dados
-```bash
-.venv/bin/python preparar_dados.py                    # gera o dataset legível
-.venv/bin/python -m unittest discover -s tests -v     # testes da preparação
-```
-- **Origem:** `dados/tech_layoffs.csv` (nunca é alterado).
-- **Gerado:** `dados/dataset_legivel_tech_layoffs.csv` — 1.745 linhas × 21 colunas: as 18 originais + `Money_Raised_clean`, `year` e `month`, calculadas como na célula de treino do notebook.
-- Sem escala, sem encoding, sem imputação e sem log do alvo: isso fica no Pipeline de ML (etapa 03). Ausentes são preservados, e as grafias originais de categorias e empresas são mantidas.
-- As funções (`carregar_dataset`, `limpar_dataset`, `gerar_atributos_derivados`, `separar_atributos_modelo`…) podem ser importadas pelo futuro script de treino.
-- Ambiente usado: `.venv` com Python 3.14.10 e as versões do `requirements.txt` (o kit recomenda 3.12/3.13; a compatibilidade com a hospedagem ainda será verificada).
+- `dados/dataset_legivel.csv` tem 1.745 linhas × 21 colunas: as 18 originais mais `Money_Raised_clean`, `year` (vem de `Year`) e `month` (vem de `Date_layoffs`), calculadas como na célula de treino do notebook.
+- Sem escala, sem encoding, sem imputação e sem log do alvo: tudo isso fica no Pipeline do modelo. Valores ausentes são preservados, e as grafias originais de categorias e empresas são mantidas.
 
-## Modelo de Machine Learning (Tech Layoffs)
-```bash
-.venv/bin/python treinar.py                           # ~25 s; gera modelo_tech_layoffs/ e reports/novo_treinamento/
-.venv/bin/python -m unittest discover -s tests -v     # 41 testes (preparação + modelo; usam os artefatos gerados)
-```
-- **O que o modelo faz:** estima **quantos funcionários foram demitidos** num evento de demissão com as características informadas. Ele **não** prevê se uma empresa vai demitir, nem a probabilidade disso.
-- **Dados:** `treinar.py` usa `preparar_dados.preparar()` e `separar_atributos_modelo()` (a mesma limpeza da etapa 02). As 8 entradas são `Country`, `Continent`, `Industry`, `Stage`, `Company_Size_before_Layoffs`, `Money_Raised_clean`, `year` e `month`; o alvo é `Laid_Off`. `Percentage` e `Company_Size_after_layoffs` ficam de fora porque vazariam a resposta.
-- **Metodologia do notebook reproduzida:** divisão 80/20 com seed 42; Pipeline com imputação, `StandardScaler` e `OneHotEncoder`; `log1p` no alvo; `GridSearchCV` com 5 folds e MAE; previsões limitadas a ≥ 0.
-- **Algoritmos avaliados (teste com 349 eventos):**
+## Modelo de Machine Learning
+- **Metodologia do notebook reproduzida:**
+  - as mesmas 8 entradas: `Country`, `Continent`, `Industry`, `Stage`, `Company_Size_before_Layoffs`, `Money_Raised_clean`, `year` e `month`;
+  - divisão 80/20 com seed 42;
+  - Pipeline com imputação, `StandardScaler` e `OneHotEncoder`;
+  - `log1p` no alvo;
+  - `GridSearchCV` com 5 folds e MAE;
+  - previsões limitadas a ≥ 0.
+- **Excluídas por vazamento:** `Percentage` e `Company_Size_after_layoffs`.
 
 | Modelo | MAE CV | MAE teste | RMSE teste | R² teste |
 |---|---:|---:|---:|---:|
@@ -308,43 +316,123 @@ A pasta local `dist/` (ZIP original do trabalho anterior) é ignorada pelo Git; 
 | KNN (k=7, distance, euclidean) | 210,19 | 258,29 | 884,34 | 0,5186 |
 | Regressão Linear Múltipla | 101.025,85 | 884,24 | 8.331,71 | −41,73 |
 
-- **Modelo selecionado: MLP**, pelo menor MAE na validação cruzada (o teste não entrou na escolha). Os resultados são iguais aos do trabalho anterior até a 13ª casa decimal; veja `reports/novo_treinamento/COMPARACAO_TREINAMENTO.md`.
-- **Limitações:**
-  - a vantagem do MLP sobre o KNN é pequena;
-  - o erro se concentra nos eventos grandes: MAE de 2.171,4 nos 18 eventos de teste com mais de 1.000 demitidos, contra 130,8 nos demais;
-  - em 14 dos 349 eventos de teste, a previsão supera o porte anterior da empresa;
-  - a divisão é aleatória, então não mostra desempenho em anos futuros;
-  - empresas se repetem entre treino e teste, e há categorias raras;
-  - o MAE não é intervalo de confiança, e o R² não é acurácia.
-- O `.joblib` guarda um `previsao_layoffs.EstimadorNaoNegativo`. Para carregá-lo, `previsao_layoffs.py` e `preparar_dados.py` precisam estar na raiz do projeto. Ambiente do treino: Python 3.14.10, scikit-learn 1.9.1, numpy 2.5.3.
+- **Modelo selecionado: MLP**, pelo menor MAE na validação cruzada. Os resultados são iguais aos do trabalho anterior até a 13ª casa decimal; veja `reports/novo_treinamento/COMPARACAO_TREINAMENTO.md`.
+- O `.joblib` guarda um `previsao_layoffs.EstimadorNaoNegativo`. Para carregá-lo, `previsao_layoffs.py` e `preparar_dados.py` precisam estar na raiz do projeto.
 
-## O que ainda pertence ao exemplo do kit
-- `dados/dataset_legivel.csv` (aluguel sintético), `modelo/modelo.joblib`, `modelo/metricas.json` e `modelo/amostra_conferencia.json` (KNN de aluguel gerado por `treinar_exemplo.py`);
-- `ferramentas.py` (constantes e regras de aluguel), `conhecimento/analise_exploratoria.md`, `prompts/responder.md`, `static/index.html` e `versao_streamlit/streamlit_app.py`;
-- `exemplo_classificacao/` e `exemplo_transformacao/`.
+## Ferramentas do agente (`ferramentas.py`)
+Os contratos usados pelo `agente.py` foram mantidos: `ATRIBUTOS`, `COLUNAS_CONSULTA`, `AGRUPAMENTOS`, `METRICAS`, `FAIXAS`, `faltando()`, `preparar()`, `prever()`, `casos_semelhantes()` e `estatisticas()`.
+
+### Validação das entradas (`faltando()` / `preparar()`)
+| Situação | Exemplo | Resultado |
+|---|---|---|
+| Não informado | vazio | `faltando()` lista o atributo, e o agente pergunta |
+| Desconhecido (só `Stage` e `Money_Raised_clean`) | "não sei", "desconhecido" | prevê com **alerta**; o Pipeline imputa (`Stage` → Post-IPO; capital → mediana 178) |
+| Desconhecido num atributo obrigatório | `Country` = "não sei" | **erro** |
+| Inválido | "12 abc", NaN/inf, porte 10,5, "500 mil" no capital | **erro** (conversão numérica estrita, casando o texto inteiro) |
+| Impossível | porte ≤ 0, capital < 0, mês fora de 1–12, ano fora de 1900–2100 | **erro** |
+| País e continente incompatíveis | Brasil + Europa | **erro** (no dataset, cada país pertence a um só continente) |
+| Continente omitido | Brasil | deduzido do país (South America) + alerta; o agente não pergunta |
+| Fora da faixa observada | porte 900.000; ano 2027 | **alerta** de extrapolação |
+| Categoria do dataset que não aparece no treino | South Korea | **alerta** (o modelo ignora a categoria) |
+
+Formatos aceitos:
+- **porte:** `5000`, `5.000`, `5,5 mil`, `1200 funcionários`;
+- **capital (em milhões, sem assumir moeda):** `300`, `300 milhões`, `1,2 bilhão` = 1200; símbolos de moeda são ignorados com alerta;
+- **mês:** número ou nome (`abril`, `apr`).
+
+### Aliases (português → dataset)
+O dicionário `ALIASES` é explícito e testado. Exemplos: Brasil → Brazil; Estados Unidos/EUA → USA; Alemanha → Germany; Índia → India; América do Norte → North America; varejo → Retail; pós-IPO → Post-IPO. As buscas ignoram maiúsculas e acentos.
+- **Consultas:** grafias equivalentes do dataset são agrupadas e o resultado avisa: Reino Unido/UK = `UK` + `United Kingdom`; `Transportation` + `Transportion`; `Logistics` + `Logistic`; empresas com caixa diferente, como `Clearco`/`ClearCo`.
+- **Previsão:** só valores que o modelo conhece. Um alias ambíguo (Reino Unido, jogos, semicondutores) gera erro com as opções.
+
+### Previsão (`prever()`)
+- Usa o modelo carregado uma única vez e devolve:
+  - a previsão real;
+  - o modelo e as métricas (MAE, RMSE, R²);
+  - uma faixa ±MAE marcada como **heurística, não intervalo de confiança**;
+  - o aviso de que o resultado **não é probabilidade de demissão**.
+- Se a previsão supera o porte informado, `previsao_inconsistente = true`, com aviso. O valor **não** é cortado para caber no porte.
+
+### Casos semelhantes (`casos_semelhantes()`)
+- **Distância de Gower** sobre as 8 entradas, para dados mistos:
+  - categóricas valem 0 se iguais e 1 se diferentes;
+  - numéricas valem |a−b| dividido pela amplitude, com porte e capital em `log1p`;
+  - atributos ausentes são ignorados e os pesos, renormalizados.
+- Um caso é "próximo" com distância ≤ 0,20. Com esse limiar, 78% dos cenários do teste têm 5 casos próximos (com 0,15 seriam 54%). Se não houver casos próximos suficientes, os mais próximos completam a lista com `fallback = true` e um aviso.
+- Retorna os casos, média, mediana, mínimo, máximo, a diferença em relação à previsão e se ela fica dentro da faixa.
+- Os casos vêm do mesmo dataset do modelo, então a comparação é indicativa, **não validação independente**.
+
+### Consultas estatísticas (`consultar_dados(consulta)`)
+Só pandas, com listas explícitas de operações, colunas e operadores. Sem `eval`, `query` ou SQL.
+- **Operações:** `soma` (só de `Laid_Off`), `contagem` (**eventos**), `contagem_distinta` (`Company` = **empresas**), `media`, `mediana`, `minimo`, `maximo`, `desvio_padrao`, `ranking`, `comparacao` e `correlacao`.
+- **Filtros:** `eq`, `ne`, `in`, `not_in`, `gt`, `gte`, `lt`, `lte`, `between`, sobre `Company`, `Country`, `Continent`, `Industry`, `Stage`, `Region`, `year`, `month`, `Date_layoffs` (AAAA-MM-DD) e as colunas numéricas. Até 10 filtros.
+- **Agrupamento e ordenação:** `agrupar_por` (até 2 colunas entre `Company`, `Country`, `Continent`, `Industry`, `Stage`, `Region`, `year`, `month`), `ordem` (`asc`/`desc`) e `limite` (1 a 50).
+- **Retorno:** operação, coluna, unidade, filtros aplicados (já traduzidos para o dataset), registros encontrados, resultado e observações.
+- **Observações automáticas:**
+  - grafias agrupadas;
+  - as 7 divergências entre `Year` e a data, quando a consulta usa `year`;
+  - aviso de que ausência de registros não significa ausência de demissões.
+- JSON estrito, sem NaN nem Infinity. Consulta inválida → `{"erro": ...}`.
+
+Exemplos executados:
+```json
+{"operacao": "soma", "coluna": "Laid_Off", "filtros": [{"coluna": "Country", "operador": "eq", "valor": "Brasil"}]}
+→ 7029 funcionários demitidos (48 eventos)
+{"operacao": "ranking", "agregacao": "soma", "coluna": "Laid_Off", "agrupar_por": ["Industry"], "limite": 3}
+→ Consumer 61155; Retail 59228; Hardware 57000
+{"operacao": "comparacao", "agregacao": "soma", "coluna": "Laid_Off", "comparar": {"coluna": "year", "valores": [2022, 2023]}}
+→ 127577 e 176946; diferença 49369 (+38,7%)
+{"operacao": "contagem_distinta", "coluna": "Company"}
+→ 1327 empresas (1323 ignorando maiúsculas/minúsculas)
+```
+`estatisticas(coluna, agrupar_por)` mantém o contrato do kit e é implementada sobre `consultar_dados()`. **A etapa 1 do agente ainda não gera essas consultas novas; isso é trabalho da etapa 05.**
+
+## Base de conhecimento e RAG
+- **`conhecimento/`:** 4 arquivos em parágrafos curtos, com termos em português e inglês, escritos só com fatos de `PERFIL_DATASET.md`, `COMPARACAO_TREINAMENTO.md`, do notebook e do dataset. O exemplo de aluguel foi removido.
+- **`fatos_do_dataset()`:** cerca de 50 trechos curtos calculados do CSV (por ano, continente, os 10 maiores países e setores, rankings, maiores eventos, correlações, valores ausentes, métricas). Os números estão em formato brasileiro, que o verificador do agente entende.
+- **`recuperacao.py`:**
+  - mantém TF-IDF (1–2 gramas) com similaridade de cosseno;
+  - cada trecho recebe a fonte e a seção, e leva o título do documento;
+  - a pergunta é expandida com sinônimos do domínio e aliases (Brasil → Brazil);
+  - um limiar no melhor trecho (0,15) descarta perguntas fora do escopo;
+  - as chaves `trecho` e `similaridade` usadas pelo agente foram mantidas.
+- **Validação:** 22 perguntas reais do domínio recuperam o trecho do tema certo, e 6 perguntas fora do escopo não recuperam nada. Isso está em `tests/test_recuperacao.py`.
+- **Limite conhecido:** perguntas fora do escopo que usam palavras do domínio ("cotação do dólar", "melhor filme de 2023") ainda trazem trechos. O filtro principal de fora do escopo é a etapa 1 do agente.
 
 ## Estado atual da integração
-- [x] Arquivos do trabalho anterior organizados no repositório (conferidos por SHA-256).
-- [x] Preparação reproduzível do dataset (`preparar_dados.py`), com testes e perfil documentado.
-- [x] Modelo do Tech Layoffs treinado e exportado em `modelo_tech_layoffs/`, com métricas e amostra de conferência reais.
-- [ ] Modelo Tech Layoffs movido para `modelo/` e usado pelo agente.
-- [ ] `dataset_legivel.csv` substituído pelo Tech Layoffs, `ferramentas.py` (incluindo `para_o_modelo()`) e base de conhecimento adaptados.
-- [ ] Prompts e interface adaptados.
+- [x] Arquivos do trabalho anterior organizados (etapa 01).
+- [x] Preparação reproduzível do dataset (etapa 02).
+- [x] Modelo MLP treinado e exportado (etapa 03).
+- [x] Dataset, modelo, ferramentas, consultas e base RAG do Tech Layoffs integrados em `dados/`, `modelo/`, `ferramentas.py`, `recuperacao.py` e `conhecimento/` (etapa 04). Tudo validado offline.
+- [ ] Interpretação das consultas novas pelo Gemini, prompts (`interpretar.md`, `responder.md`) e testes reais com a API (etapa 05).
+- [ ] Interface (`static/index.html`, `versao_streamlit/`), que ainda mostra os textos de aluguel.
 
-**Hoje o app ainda responde sobre o exemplo de aluguel do kit.**
+**As ferramentas e o RAG funcionam offline, mas o chatbot conversacional ainda não está pronto:** os prompts e a página continuam com a persona de aluguel, e o Gemini ainda não foi testado com o novo domínio.
 
 ## O que mudamos em relação ao kit
-- Incorporamos os arquivos do trabalho anterior nas pastas `dados/`, `notebooks/`, `reports/` e `referencias/` (sem alterar seu conteúdo).
-- Criamos `plan/01-organizacao-projeto.md` com a análise do dataset, do notebook, do RAG e das dependências.
-- `.gitignore`: acrescentamos `/dist/`, `.ipynb_checkpoints/`, `.pytest_cache/` e `.idea/`.
-- Acrescentamos esta seção ao README.
-- Criamos `preparar_dados.py`, que gera `dados/dataset_legivel_tech_layoffs.csv` a partir do CSV original.
-- Criamos testes automatizados em `tests/test_preparar_dados.py` (20 testes, `unittest`, sem novas dependências).
-- Criamos `reports/PERFIL_DATASET.md` e `plan/02-preparacao-dataset.md`.
-- Criamos `treinar.py`, que reproduz o treino do notebook a partir de `preparar_dados.py` e escolhe o modelo pelo MAE de validação cruzada (o notebook escolhia pelo MAE de teste).
-- Criamos `previsao_layoffs.py`, com o corte em zero serializado no próprio modelo (`EstimadorNaoNegativo`) e a função `prever_demissoes()`. Ela avisa quando há entradas ausentes, categorias desconhecidas ou previsão maior que o porte da empresa.
-- Geramos `modelo_tech_layoffs/` e `reports/novo_treinamento/` (os resultados originais em `reports/resultados/` foram mantidos).
-- Criamos `tests/test_machine_learning.py` (21 testes) e `plan/03-machine-learning.md`.
-- Os arquivos novos foram implementados com apoio do Claude Code (Anthropic) e revisados e executados pelo grupo. Isso vai para a declaração de uso de IA.
-
-Nenhum arquivo de código do kit foi alterado até aqui: **o agente, o modelo em `modelo/` e o RAG ainda usam o exemplo de aluguel.**
+- **Etapa 01:**
+  - incorporamos os arquivos do trabalho anterior em `dados/`, `notebooks/`, `reports/` e `referencias/`;
+  - acrescentamos `/dist/`, `.ipynb_checkpoints/`, `.pytest_cache/` e `.idea/` ao `.gitignore`.
+- **Etapa 02:**
+  - criamos `preparar_dados.py`, `reports/PERFIL_DATASET.md` e `tests/test_preparar_dados.py` (20 testes).
+- **Etapa 03:**
+  - criamos `treinar.py`, que escolhe o modelo pelo MAE de validação cruzada (o notebook escolhia pelo MAE de teste);
+  - criamos `previsao_layoffs.py`, com o corte em zero serializado no modelo;
+  - criamos `reports/novo_treinamento/` e `tests/test_machine_learning.py`.
+- **Etapa 04:**
+  - substituímos os artefatos de aluguel por `dados/dataset_legivel.csv` e `modelo/*` do Tech Layoffs e removemos as cópias temporárias depois de conferir os hashes;
+  - **`ferramentas.py`** foi reescrito para o domínio:
+    - validação com erros e alertas distintos;
+    - conversão numérica estrita;
+    - aliases PT→EN e agrupamento de grafias;
+    - continente deduzido do país e checagem de compatibilidade;
+    - previsão com aviso de inconsistência e faixa marcada como heurística;
+    - casos semelhantes por distância de Gower com fallback;
+    - nova função `consultar_dados()` (11 operações, filtros combináveis, ranking, comparação, correlação);
+    - `fatos_do_dataset()` em trechos curtos;
+  - **`recuperacao.py`:** fonte e seção nos trechos, expansão de sinônimos e aliases, título do documento nos trechos, limiar no melhor trecho e stopwords de verbos comuns;
+  - **`conhecimento/`:** 4 documentos novos; o de aluguel foi removido;
+  - **`testar_sem_api.py` e `conferir.py`:** exemplos reais do Tech Layoffs, casos impossíveis (mês 13, porte negativo) e consultas;
+  - **testes:** `tests/test_ferramentas.py` (45) e `tests/test_recuperacao.py` (8); `test_machine_learning.py` foi ajustado aos caminhos definitivos.
+- **Sem alteração:** `agente.py`, `app.py`, `prompts/`, `static/` e `versao_streamlit/`.
+- **Uso de IA:** todos os arquivos criados e alterados nas etapas 01 a 04 foram implementados com apoio do **Claude Code** (Anthropic), em especial `preparar_dados.py`, `treinar.py`, `previsao_layoffs.py`, `ferramentas.py`, `recuperacao.py`, `conhecimento/*.md`, `testar_sem_api.py`, `conferir.py`, `tests/*` e `plan/*`. O grupo revisou e executou tudo. Isso vai para a declaração de uso de IA do relatório.

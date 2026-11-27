@@ -7,7 +7,7 @@ Essas transformações pertencem ao Pipeline de ML e são ajustadas só no trein
 
     .venv/bin/python preparar_dados.py
         lê   dados/tech_layoffs.csv                   (original, nunca é alterado)
-        gera dados/dataset_legivel_tech_layoffs.csv
+        gera dados/dataset_legivel.csv                (usado por ferramentas.py)
 
 As funções podem ser importadas pelo futuro script de treino:
     from preparar_dados import carregar_dataset, limpar_dataset, gerar_atributos_derivados,
@@ -20,7 +20,7 @@ import pandas as pd
 
 BASE = Path(__file__).resolve().parent
 ORIGEM = BASE / "dados" / "tech_layoffs.csv"
-DESTINO = BASE / "dados" / "dataset_legivel_tech_layoffs.csv"
+DESTINO = BASE / "dados" / "dataset_legivel.csv"          # caminho canônico do kit (etapa 04)
 
 # Colunas exigidas pelo notebook (célula 3). 'Nr' existe no CSV, mas o notebook não a exige.
 COLUNAS_OBRIGATORIAS = [
